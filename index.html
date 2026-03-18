@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>술 권하는 사회 — 오지선다 퀴즈</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif; background: #f5f4f0; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 2rem 1rem; }
+  .card { background: #fff; border-radius: 12px; border: 0.5px solid #d3d1c7; padding: 2rem; max-width: 680px; width: 100%; }
+  h1 { font-size: 18px; font-weight: 500; color: #2c2c2a; margin-bottom: 0.25rem; }
+  .subtitle { font-size: 13px; color: #888780; margin-bottom: 1.5rem; }
+  .progress-bar { height: 4px; background: #d3d1c7; border-radius: 2px; margin-bottom: 1.5rem; }
+  .progress-fill { height: 100%; background: #7F77DD; border-radius: 2px; transition: width 0.4s ease; }
+  .q-counter { font-size: 13px; color: #888780; margin-bottom: 0.5rem; }
+  .q-text { font-size: 16px; color: #2c2c2a; line-height: 1.7; margin-bottom: 1.25rem; font-weight: 500; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .opt-btn { text-align: left; padding: 12px 16px; border-radius: 8px; border: 0.5px solid #b4b2a9; background: #fff; color: #2c2c2a; font-size: 14px; cursor: pointer; line-height: 1.5; transition: background 0.15s, border-color 0.15s; font-family: inherit; }
+  .opt-btn:hover:not(:disabled) { background: #f1efe8; border-color: #888780; }
+  .opt-btn.correct { background: #EAF3DE; border-color: #3B6D11; color: #27500A; }
+  .opt-btn.wrong { background: #FCEBEB; border-color: #A32D2D; color: #791F1F; }
+  .opt-btn.reveal { background: #EAF3DE; border-color: #3B6D11; color: #27500A; }
+  .opt-btn:disabled { cursor: default; }
+  .feedback { margin-top: 1rem; font-size: 14px; line-height: 1.6; padding: 12px 16px; border-radius: 8px; }
+  .feedback.correct { background: #EAF3DE; color: #27500A; border: 0.5px solid #3B6D11; }
+  .feedback.wrong { background: #FCEBEB; color: #791F1F; border: 0.5px solid #A32D2D; }
+  .next-btn { margin-top: 1rem; padding: 10px 20px; border-radius: 8px; border: 0.5px solid #b4b2a9; background: #fff; color: #2c2c2a; font-size: 14px; cursor: pointer; font-family: inherit; }
+  .next-btn:hover { background: #f1efe8; }
+  .score-box { text-align: center; padding: 2rem 1rem; }
+  .score-num { font-size: 48px; font-weight: 500; color: #7F77DD; }
+  .score-label { font-size: 15px; color: #888780; margin-top: 0.5rem; }
+  .score-msg { margin-top: 1rem; font-size: 14px; color: #5f5e5a; }
+  .retry-btn { margin-top: 1.5rem; padding: 10px 24px; border-radius: 8px; border: 0.5px solid #b4b2a9; background: #fff; color: #2c2c2a; font-size: 14px; cursor: pointer; font-family: inherit; }
+  .retry-btn:hover { background: #f1efe8; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>술 권하는 사회 — 오지선다 퀴즈</h1>
+  <p class="subtitle">현진건, 1921 · 총 7문제</p>
+  <div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+  <div id="quiz-body"></div>
+</div>
+
+<script>
+const qs = [
+  {
+    q: "아내가 혼자 기다리는 동안 손가락을 다치게 된 이유는 무엇인가?",
+    opts: [
+      "실수로 가위를 잘못 들었기 때문이다",
+      "지루한 시간을 보내려 꺼낸 바느질에 집중하지 못했기 때문이다",
+      "잠결에 바느질감을 잘못 잡았기 때문이다",
+      "할멈이 놀라게 해서 손이 흔들렸기 때문이다",
+      "남편이 갑자기 들어오는 바람에 깜짝 놀랐기 때문이다"
+    ],
+    ans: 1,
+    exp: "아내는 지루한 기다림을 달래려 치워두었던 바느질감을 다시 꺼냈으나, 마음이 딴 데 있어 바늘이 헛되이 움직이다 결국 손가락을 찔리고 맙니다."
+  },
+  {
+    q: "아내가 남편의 도쿄 유학을 견딜 수 있었던 주된 정신적 힘은 무엇이었는가?",
+    opts: [
+      "친척들의 위로와 지원",
+      "종교적 믿음과 기도",
+      "'남편이 돌아오기만 하면'이라는 기대와 희망",
+      "바느질과 가사 일에 몰두하는 것",
+      "친정 부모님의 곁에 머무는 것"
+    ],
+    ans: 2,
+    exp: "아내는 남편이 도깨비 방망이 같은 '공부'를 마치고 돌아오면 모든 것이 달라지리라는 기대 하나로 7~8년의 기다림을 달게 받아들였습니다."
+  },
+  {
+    q: "남편이 밤중에 다시 집을 나가버린 직접적인 계기는 무엇인가?",
+    opts: [
+      "아내가 술을 더 마시지 말라고 울며 애원했기 때문이다",
+      "아내가 '무슨 노릇을 못해서 주정뱅이 노릇을 해요'라고 흥분하며 말했기 때문이다",
+      "할멈이 나리를 꾸짖는 말을 했기 때문이다",
+      "남편이 갑자기 구역질이 나서 밖으로 나갔기 때문이다",
+      "아내가 옷을 억지로 벗기려다 남편을 넘어뜨렸기 때문이다"
+    ],
+    ans: 1,
+    exp: "아내가 자신도 모르게 흥분하여 '무슨 노릇을 못해서 주정뱅이 노릇을 해요'라고 말하자, 남편은 깊은 상처와 절망을 느끼고 '그르지, 내가 그르지'라며 탄식한 뒤 집을 나가버립니다."
+  },
+  {
+    q: "남편이 '나에게 술을 권하는 것은 이 조선 사회'라고 말한 뜻으로 가장 적절한 것은?",
+    opts: [
+      "조선에는 술집이 너무 많아 유혹을 피할 수 없다는 뜻이다",
+      "지식인으로서 무언가를 해보려 해도 파벌 싸움과 무력한 현실에 거듭 좌절하여 술로 의식을 마비시킬 수밖에 없다는 뜻이다",
+      "친구들이 사교 모임에서 술을 강권한다는 뜻이다",
+      "서양 문물이 들어오면서 음주 문화가 퍼졌다는 뜻이다",
+      "아내가 술을 금하지 않고 내버려두었기 때문이라는 뜻이다"
+    ],
+    ans: 1,
+    exp: "남편은 식민지 조선에서 지식인으로서 민족과 사회를 위해 일하려 했으나, 내부 분열과 구조적 좌절로 아무것도 이룰 수 없음을 깨달았습니다. 그 절망감을 잊기 위해 술을 마실 수밖에 없다는 고백으로, 개인이 아닌 사회 구조가 그를 음주로 내몬다는 의미입니다."
+  },
+  {
+    q: "이 작품에서 아내와 남편 사이의 '소통 단절'을 가장 잘 보여주는 장면은?",
+    opts: [
+      "아내가 혼자 바느질을 하며 남편을 기다리는 장면",
+      "아내가 대문을 열었다 닫기를 반복하는 장면",
+      "아내가 '사회'를 조선에만 있는 요릿집 이름으로 이해하는 장면",
+      "할멈이 술 취한 남편을 부축해 방으로 들이는 장면",
+      "아내가 빈 이불을 들추며 '안 왔구먼'이라고 울부짖는 장면"
+    ],
+    ans: 2,
+    exp: "남편이 절박하게 '이 조선 사회가 나에게 술을 권한다'고 토로할 때, 아내는 '사회'라는 단어를 딴 나라에는 없고 조선에만 있는 요릿집 이름으로 이해합니다. 이 장면은 근대 교육을 받은 남편과 그렇지 못한 아내 사이의 메울 수 없는 인식의 간극을 극적으로 드러냅니다."
+  },
+  {
+    q: "아내가 남편에 대해 품고 있던 기대와 실제 귀국 후 현실 사이의 가장 큰 차이는 무엇인가?",
+    opts: [
+      "남편이 기대와 달리 돈을 많이 벌어오지 못한 것",
+      "남편이 서울이 아닌 지방에 취직한 것",
+      "남편이 무한한 가능성을 가져올 것이라 믿었으나, 오히려 집안 돈을 쓰며 무기력하게 지낸 것",
+      "남편이 귀국 후 다른 여성을 만나기 시작한 것",
+      "남편이 유학 중 얻은 병으로 허약해진 것"
+    ],
+    ans: 2,
+    exp: "아내는 남편의 '공부'를 도깨비 방망이처럼 무엇이든 이루어줄 마법 같은 것으로 믿었습니다. 그러나 귀국한 남편은 돈을 버는 대신 오히려 집안 돈을 쓰고, 점점 침울해지며 결국 술에 빠져드는 모습을 보였습니다."
+  },
+  {
+    q: "다음 중 이 소설의 시대적 배경과 주제 의식을 가장 잘 설명한 것은?",
+    opts: [
+      "개화기 신분제 해체 과정에서 겪는 양반 가문의 몰락을 그린다",
+      "3·1운동 이후 식민지 조선에서 이상과 현실 사이에 낀 지식인의 좌절과 무력감을 사실주의적으로 포착한다",
+      "일제강점기 농촌 빈민의 경제적 궁핍과 저항 의식을 형상화한다",
+      "근대화 초기 종교와 전통 사이에서 갈등하는 지식인의 내면을 그린다",
+      "해방 이후 혼란한 사회 속 가족 해체 문제를 다룬다"
+    ],
+    ans: 1,
+    exp: "이 소설은 1921년, 3·1운동의 실패 이후 좌절감이 팽배했던 시기에 발표되었습니다. 도쿄 유학까지 마친 지식인이 식민지 조선의 구조적 모순 앞에서 아무것도 할 수 없다는 절망감을 술로 달랠 수밖에 없는 현실을 냉철하게 그린 사실주의 작품입니다."
+  }
+];
+
+let cur = 0, score = 0, answered = false;
+
+function render() {
+  const body = document.getElementById('quiz-body');
+  if (cur >= qs.length) {
+    document.getElementById('prog').style.width = '100%';
+    body.innerHTML = `<div class="score-box">
+      <div class="score-num">${score} / ${qs.length}</div>
+      <div class="score-label">정답 수</div>
+      <div class="score-msg">${getMsg()}</div>
+      <button class="retry-btn" onclick="restart()">다시 풀기</button>
+    </div>`;
+    return;
+  }
+  const q = qs[cur];
+  document.getElementById('prog').style.width = ((cur / qs.length) * 100) + '%';
+  answered = false;
+  body.innerHTML = `
+    <div class="q-counter">${cur + 1} / ${qs.length}</div>
+    <div class="q-text">${q.q}</div>
+    <div class="options" id="opts">
+      ${q.opts.map((o, i) => `<button class="opt-btn" onclick="pick(${i})">${'①②③④⑤'[i]} ${o}</button>`).join('')}
+    </div>
+    <div id="fb"></div>
+    <div id="nxt"></div>
+  `;
+}
+
+function getMsg() {
+  const s = score / qs.length;
+  if (s === 1) return '완벽합니다! 작품을 꿰뚫고 계시네요.';
+  if (s >= 0.7) return '훌륭합니다! 작품을 잘 이해하고 계십니다.';
+  if (s >= 0.5) return '절반 이상 맞히셨습니다. 해제를 다시 한번 읽어보시면 도움이 될 것 같습니다.';
+  return '틀린 문제의 해설을 꼼꼼히 읽어보시길 권합니다.';
+}
+
+function pick(i) {
+  if (answered) return;
+  answered = true;
+  const q = qs[cur];
+  const btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  const correct = i === q.ans;
+  if (correct) score++;
+  btns[i].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btns[q.ans].classList.add('reveal');
+  document.getElementById('fb').innerHTML = `<div class="feedback ${correct ? 'correct' : 'wrong'}">
+    ${correct ? '정답입니다!' : '오답입니다.'} ${q.exp}
+  </div>`;
+  document.getElementById('nxt').innerHTML = `<button class="next-btn" onclick="next()">${cur + 1 < qs.length ? '다음 문제 →' : '결과 보기 →'}</button>`;
+}
+
+function next() { cur++; render(); }
+function restart() { cur = 0; score = 0; render(); }
+
+render();
+</script>
+</body>
+</html>
